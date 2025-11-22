@@ -6,7 +6,7 @@ export interface User {
   subscriptionTier: 'basic' | 'pro' | 'unlimited'
   stripeCustomerId?: string
   stripeSubscriptionId?: string
-  subscriptionStatus?: 'active' | 'past_due' | 'canceled' | 'incomplete' | 'trialing'
+  subscriptionStatus?: 'active' | 'past_due' | 'canceled' | 'incomplete'
   subscriptionUpdatedAt?: Date
   lastPaymentDate?: Date
 }

@@ -43,7 +43,7 @@ export default function LandingPage() {
               href="/signup"
               className="bg-primary-500 text-white px-8 py-4 rounded-lg hover:bg-primary-600 transition-all flex items-center gap-2 text-lg font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
             >
-              Start Free Trial
+              Get Started
               <ArrowRight className="w-5 h-5" />
             </Link>
             <Link 
@@ -54,7 +54,7 @@ export default function LandingPage() {
             </Link>
           </div>
           <p className="text-sm text-gray-500 mt-4">
-            Starting at $15/month • No credit card required for trial
+            Starting at $15/month
           </p>
         </div>
       </section>
@@ -282,7 +282,7 @@ export default function LandingPage() {
             href="/signup"
             className="inline-flex items-center gap-2 bg-white text-primary-600 px-8 py-4 rounded-lg hover:bg-gray-50 transition-all text-lg font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
           >
-            Start Your Free Trial
+            Get Started Today
             <ArrowRight className="w-5 h-5" />
           </Link>
         </div>
