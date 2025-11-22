@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, Target, Heart, Users } from 'lucide-react'
+import { ArrowLeft, Target, Heart, Users, TrendingUp } from 'lucide-react'
 import { generateMetadata } from '@/lib/seo'
 import type { Metadata } from 'next'
 
