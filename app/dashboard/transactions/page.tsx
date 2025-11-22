@@ -4,17 +4,21 @@ import { useState, useEffect } from 'react'
 import { collection, addDoc, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useBusiness } from '@/hooks/useBusiness'
-import { Expense, Revenue } from '@/types'
-import { DollarSign, TrendingDown, Trash2, Calendar, Tag, FileText } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
+import { Expense, Revenue, RecurringTransaction } from '@/types'
+import { DollarSign, TrendingDown, Trash2, Calendar, Tag, FileText, Repeat, Clock } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 import { firestoreTimestampToDate, formatCurrency } from '@/lib/utils'
+import RecurringTransactionForm from '@/components/RecurringTransactionForm'
 
 export default function TransactionsPage() {
   const { selectedBusiness } = useBusiness()
+  const { user } = useAuth()
   const [loading, setLoading] = useState(false)
   const [revenues, setRevenues] = useState<Revenue[]>([])
   const [expenses, setExpenses] = useState<Expense[]>([])
+  const [recurringTransactions, setRecurringTransactions] = useState<RecurringTransaction[]>([])
 
   // Revenue form state
   const [revenueAmount, setRevenueAmount] = useState('')
@@ -52,10 +56,11 @@ export default function TransactionsPage() {
   ]
 
   useEffect(() => {
-    if (selectedBusiness) {
+    if (selectedBusiness && user) {
       fetchAllTransactions()
+      fetchRecurringTransactions()
     }
-  }, [selectedBusiness])
+  }, [selectedBusiness, user])
 
   const fetchAllTransactions = async () => {
     if (!selectedBusiness) return
@@ -102,6 +107,40 @@ export default function TransactionsPage() {
       toast.error('Failed to load transactions')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchRecurringTransactions = async () => {
+    if (!selectedBusiness || !user) return
+
+    try {
+      const response = await fetch(
+        `/api/forecast/recurring?businessId=${selectedBusiness.id}&userId=${user.uid}`
+      )
+      const data = await response.json()
+      setRecurringTransactions(data.transactions || [])
+    } catch (error) {
+      console.error('Error fetching recurring transactions:', error)
+    }
+  }
+
+  const handleDeleteRecurring = async (transactionId: string) => {
+    try {
+      const response = await fetch(`/api/forecast/recurring?transactionId=${transactionId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete transaction')
+      }
+
+      setRecurringTransactions(
+        recurringTransactions.filter((t) => t.id !== transactionId)
+      )
+      toast.success('Recurring transaction deleted')
+    } catch (error) {
+      console.error('Error deleting transaction:', error)
+      toast.error('Failed to delete transaction')
     }
   }
 
@@ -189,13 +228,131 @@ export default function TransactionsPage() {
     )
   }
 
+  const activeRecurring = recurringTransactions.filter((t) => t.active)
+  const recurringRevenue = activeRecurring.filter((t) => t.type === 'revenue')
+  const recurringExpenses = activeRecurring.filter((t) => t.type === 'expense')
+
   return (
     <div className="space-y-6 pb-24">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
-        <p className="text-gray-600 mt-1">Track all your revenue and expenses in one place</p>
+        <p className="text-gray-600 mt-1">Track all your revenue, expenses, and recurring transactions</p>
       </div>
+
+      {/* Recurring Transactions Section */}
+      {user && (
+        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-200 p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-3 bg-indigo-500 rounded-lg">
+              <Repeat className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-xl font-bold text-gray-900">Recurring Transactions</h2>
+              <p className="text-sm text-gray-600">
+                Manage scheduled payments and income • {activeRecurring.length} active
+              </p>
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <RecurringTransactionForm
+              businessId={selectedBusiness.id}
+              userId={user.uid}
+              onSuccess={() => {
+                fetchRecurringTransactions()
+                toast.success('Recurring transaction added!')
+              }}
+            />
+          </div>
+
+          {recurringTransactions.length > 0 ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Recurring Revenue */}
+              <div className="bg-white rounded-lg p-4 border border-success-200">
+                <h3 className="font-semibold text-success-700 mb-3 flex items-center gap-2">
+                  <DollarSign className="w-5 h-5" />
+                  Recurring Revenue ({recurringRevenue.length})
+                </h3>
+                {recurringRevenue.length === 0 ? (
+                  <p className="text-sm text-gray-500 text-center py-4">No recurring revenue</p>
+                ) : (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {recurringRevenue.map((transaction) => (
+                      <div
+                        key={transaction.id}
+                        className="p-3 bg-success-50 rounded-lg border border-success-200 flex items-center justify-between"
+                      >
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900 text-sm">{transaction.name}</p>
+                          <div className="flex items-center gap-3 text-xs text-gray-600 mt-1">
+                            <span className="font-semibold text-success-600">
+                              {formatCurrency(transaction.amount)}
+                            </span>
+                            <span>•</span>
+                            <span>{transaction.frequency}</span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteRecurring(transaction.id)}
+                          className="p-1.5 hover:bg-red-100 rounded transition-colors group"
+                        >
+                          <Trash2 className="w-4 h-4 text-gray-400 group-hover:text-red-600" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Recurring Expenses */}
+              <div className="bg-white rounded-lg p-4 border border-orange-200">
+                <h3 className="font-semibold text-orange-700 mb-3 flex items-center gap-2">
+                  <TrendingDown className="w-5 h-5" />
+                  Recurring Expenses ({recurringExpenses.length})
+                </h3>
+                {recurringExpenses.length === 0 ? (
+                  <p className="text-sm text-gray-500 text-center py-4">No recurring expenses</p>
+                ) : (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {recurringExpenses.map((transaction) => (
+                      <div
+                        key={transaction.id}
+                        className="p-3 bg-orange-50 rounded-lg border border-orange-200 flex items-center justify-between"
+                      >
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900 text-sm">{transaction.name}</p>
+                          <div className="flex items-center gap-3 text-xs text-gray-600 mt-1">
+                            <span className="font-semibold text-orange-600">
+                              {formatCurrency(transaction.amount)}
+                            </span>
+                            <span>•</span>
+                            <span>{transaction.frequency}</span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteRecurring(transaction.id)}
+                          className="p-1.5 hover:bg-red-100 rounded transition-colors group"
+                        >
+                          <Trash2 className="w-4 h-4 text-gray-400 group-hover:text-red-600" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg p-8 text-center">
+              <Clock className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+              <p className="text-gray-600 font-medium">No recurring transactions yet</p>
+              <p className="text-sm text-gray-500 mt-1">
+                Add scheduled revenue or expenses to track them automatically
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Two Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
