@@ -36,7 +36,7 @@ export default function LandingPage() {
             <span className="text-primary-500"> Confidence</span>
           </h1>
           <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
-            Track expenses, revenue, and inventory in one simple dashboard. Built for Puerto Rico's small businesses.
+            Track expenses, revenue, and inventory in one simple dashboard. Built for small businesses.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link 
@@ -276,7 +276,7 @@ export default function LandingPage() {
             Ready to Take Control of Your Business?
           </h2>
           <p className="text-xl text-primary-100 mb-8 max-w-2xl mx-auto">
-            Join hundreds of Puerto Rico small business owners who trust BizOps Lite.
+            Join hundreds of small business owners who trust BizOps Lite.
           </p>
           <Link 
             href="/signup"
@@ -298,7 +298,7 @@ export default function LandingPage() {
             <span className="text-xl font-bold text-gray-900">BizOps Lite</span>
           </div>
           <p className="text-gray-600">
-            © 2024 BizOps Lite. Made with ❤️ for Puerto Rico small businesses.
+            © 2024 BizOps Lite. Made with ❤️ for small businesses.
           </p>
         </div>
       </footer>

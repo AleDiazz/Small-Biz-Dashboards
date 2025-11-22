@@ -1,6 +1,6 @@
 # 🚀 BizOps Lite - Small Business Dashboard
 
-A modern, mobile-first dashboard for Puerto Rico small businesses to track revenue, expenses, and inventory with subscription-based tiers.
+A modern, mobile-first dashboard for small businesses to track revenue, expenses, and inventory with subscription-based tiers.
 
 ---
 
@@ -512,10 +512,10 @@ Before launching to real users:
 
 ## 📄 License
 
-MIT License - Built for Puerto Rico small businesses
+MIT License - Built for small businesses
 
 ---
 
-**Made with ❤️ for Puerto Rico small businesses**
+**Made with ❤️ for small businesses**
 
 Version: 2.3.0 | Status: Production Ready | Last Updated: November 22, 2025
