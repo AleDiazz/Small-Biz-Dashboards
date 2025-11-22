@@ -74,8 +74,8 @@ export default function TransactionsPage() {
       })
       // Sort on client-side to avoid needing Firestore index
       revenuesList.sort((a, b) => {
-        const dateA = a.date.seconds || 0
-        const dateB = b.date.seconds || 0
+        const dateA = firestoreTimestampToDate(a.date).getTime()
+        const dateB = firestoreTimestampToDate(b.date).getTime()
         return dateB - dateA // desc order
       })
       setRevenues(revenuesList)
@@ -92,8 +92,8 @@ export default function TransactionsPage() {
       })
       // Sort on client-side to avoid needing Firestore index
       expensesList.sort((a, b) => {
-        const dateA = a.date.seconds || 0
-        const dateB = b.date.seconds || 0
+        const dateA = firestoreTimestampToDate(a.date).getTime()
+        const dateB = firestoreTimestampToDate(b.date).getTime()
         return dateB - dateA // desc order
       })
       setExpenses(expensesList)

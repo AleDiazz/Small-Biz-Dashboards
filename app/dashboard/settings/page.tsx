@@ -282,7 +282,7 @@ export default function SettingsPage() {
               <p className="text-primary-800 text-sm mb-3">
                 {currentTier?.businessLimit === null 
                   ? 'Unlimited businesses' 
-                  : `Up to ${currentTier?.businessLimit} business${currentTier?.businessLimit > 1 ? 'es' : ''}`}
+                  : `Up to ${currentTier?.businessLimit} business${(currentTier?.businessLimit ?? 0) > 1 ? 'es' : ''}`}
               </p>
               {userData?.stripeCustomerId && (
                 <button

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
@@ -9,7 +9,7 @@ import { auth, db } from '@/lib/firebase'
 import toast from 'react-hot-toast'
 import { TrendingUp, Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react'
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const planParam = searchParams.get('plan') || 'basic'
@@ -206,6 +206,18 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 flex items-center justify-center p-4">
+        <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    }>
+      <SignupForm />
+    </Suspense>
   )
 }
 

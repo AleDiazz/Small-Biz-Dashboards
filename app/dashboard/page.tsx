@@ -70,8 +70,8 @@ export default function DashboardPage() {
         })
         // Sort on client-side and limit to 100
         expensesList.sort((a, b) => {
-          const dateA = a.date.seconds || 0
-          const dateB = b.date.seconds || 0
+          const dateA = firestoreTimestampToDate(a.date).getTime()
+          const dateB = firestoreTimestampToDate(b.date).getTime()
           return dateB - dateA
         })
         setExpenses(expensesList.slice(0, 100))
@@ -88,8 +88,8 @@ export default function DashboardPage() {
         })
         // Sort on client-side and limit to 100
         revenuesList.sort((a, b) => {
-          const dateA = a.date.seconds || 0
-          const dateB = b.date.seconds || 0
+          const dateA = firestoreTimestampToDate(a.date).getTime()
+          const dateB = firestoreTimestampToDate(b.date).getTime()
           return dateB - dateA
         })
         setRevenues(revenuesList.slice(0, 100))
