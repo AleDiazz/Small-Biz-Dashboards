@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.ejs": "html",
+        "plyconfig.json": "jsonc"
+    },
+    "git.ignoreLimitWarning": true
+}

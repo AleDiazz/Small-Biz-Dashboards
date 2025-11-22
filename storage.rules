@@ -1,0 +1,32 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function to check if user is authenticated
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // User profile images - users can only access their own
+    match /users/{userId}/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == userId;
+    }
+    
+    // Business related files - only accessible by business owner
+    match /businesses/{businessId}/{allPaths=**} {
+      allow read: if isSignedIn() && 
+                     firestore.exists(/databases/(default)/documents/businesses/$(businessId)) &&
+                     firestore.get(/databases/(default)/documents/businesses/$(businessId)).data.userId == request.auth.uid;
+      allow write: if isSignedIn() && 
+                      firestore.exists(/databases/(default)/documents/businesses/$(businessId)) &&
+                      firestore.get(/databases/(default)/documents/businesses/$(businessId)).data.userId == request.auth.uid;
+    }
+    
+    // Deny all other access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
