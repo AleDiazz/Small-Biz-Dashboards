@@ -10,13 +10,13 @@ export class InsightsEngine {
     // Group expenses by category
     const categoryExpenses = this.groupByCategory(expenses)
     
-    for (const [category, categoryExpenses] of Object.entries(categoryExpenses)) {
-      const amounts = categoryExpenses.map((e) => e.amount)
+    for (const [category, expensesForCategory] of Object.entries(categoryExpenses)) {
+      const amounts = expensesForCategory.map((e) => e.amount)
       const average = this.calculateAverage(amounts)
       const stdDev = this.calculateStdDev(amounts, average)
       
       // Find expenses that are significantly above average
-      const anomalies = categoryExpenses.filter((expense) => {
+      const anomalies = expensesForCategory.filter((expense) => {
         return expense.amount > average + threshold * stdDev
       })
       
@@ -138,8 +138,8 @@ export class InsightsEngine {
       'Transportation': 0.05,
     }
     
-    for (const [category, categoryExpenses] of Object.entries(categoryExpenses)) {
-      const totalCategorySpend = categoryExpenses.reduce((sum, e) => sum + e.amount, 0)
+    for (const [category, expensesForCategory] of Object.entries(categoryExpenses)) {
+      const totalCategorySpend = expensesForCategory.reduce((sum, e) => sum + e.amount, 0)
       const percentOfRevenue = totalCategorySpend / totalRevenue
       
       const benchmark = benchmarks[category]
@@ -164,7 +164,7 @@ export class InsightsEngine {
             'Compare multiple quotes before purchasing',
             'Consider bulk purchasing or annual contracts',
           ],
-          relatedExpenses: categoryExpenses.map((e) => e.id),
+          relatedExpenses: expensesForCategory.map((e) => e.id),
           createdAt: new Date(),
           acknowledged: false,
         })
@@ -181,16 +181,16 @@ export class InsightsEngine {
     const optimizations: CostOptimization[] = []
     const categoryExpenses = this.groupByCategory(expenses)
     
-    for (const [category, categoryExpenses] of Object.entries(categoryExpenses)) {
-      const totalSpend = categoryExpenses.reduce((sum, e) => sum + e.amount, 0)
-      const monthlyAverage = totalSpend / Math.max(1, this.getMonthSpan(categoryExpenses))
+    for (const [category, expensesForCategory] of Object.entries(categoryExpenses)) {
+      const totalSpend = expensesForCategory.reduce((sum, e) => sum + e.amount, 0)
+      const monthlyAverage = totalSpend / Math.max(1, this.getMonthSpan(expensesForCategory))
       
       // Suggest 5-15% potential savings based on category
       const savingsPercentage = this.getSavingsPercentage(category)
       const potentialSavings = totalSpend * savingsPercentage
       const recommendedSpend = totalSpend - potentialSavings
       
-      if (potentialSavings > 50 && categoryExpenses.length >= 3) {
+      if (potentialSavings > 50 && expensesForCategory.length >= 3) {
         optimizations.push({
           id: `optimization-${category}-${Date.now()}`,
           businessId: expenses[0]?.businessId || '',
@@ -214,8 +214,8 @@ export class InsightsEngine {
     const patterns: SpendingPattern[] = []
     const categoryExpenses = this.groupByCategory(expenses)
     
-    for (const [category, categoryExpenses] of Object.entries(categoryExpenses)) {
-      const monthlyData = this.groupByMonth(categoryExpenses)
+    for (const [category, expensesForCategory] of Object.entries(categoryExpenses)) {
+      const monthlyData = this.groupByMonth(expensesForCategory)
       const monthlyAverages = Object.values(monthlyData).map((expenses) =>
         expenses.reduce((sum, e) => sum + e.amount, 0)
       )

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase-admin'
 import { Expense, SpendingPattern } from '@/types'
 import { insightsEngine } from '@/lib/ai/insights-engine'
+import { Timestamp } from 'firebase-admin/firestore'
 
 export async function GET(request: NextRequest) {
   try {
@@ -82,14 +83,20 @@ export async function POST(request: NextRequest) {
 
       const existing = await existingRef.get()
 
+      // Convert Date to Firestore Timestamp for storage
+      const patternData = {
+        ...pattern,
+        lastUpdated: Timestamp.fromDate(pattern.lastUpdated),
+      }
+
       if (!existing.empty) {
         // Update existing pattern
         const docRef = existing.docs[0].ref
-        await docRef.update(pattern)
+        await docRef.update(patternData)
         savedPatterns.push(pattern)
       } else {
         // Create new pattern
-        await adminDb.collection('spendingPatterns').add(pattern)
+        await adminDb.collection('spendingPatterns').add(patternData)
         savedPatterns.push(pattern)
       }
     }
