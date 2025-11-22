@@ -34,7 +34,7 @@ service cloud.firestore {
       allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
       allow create: if isSignedIn() && 
                        request.resource.data.userId == request.auth.uid &&
-                       request.resource.data.keys().hasAll(['name', 'industry', 'userId', 'createdAt']);
+                       request.resource.data.keys().hasAll(['name', 'type', 'userId', 'createdAt', 'currency']);
       allow update: if isSignedIn() && 
                        resource.data.userId == request.auth.uid &&
                        // Prevent changing the owner
