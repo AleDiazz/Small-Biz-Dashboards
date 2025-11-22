@@ -11,6 +11,7 @@ import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 import { firestoreTimestampToDate, formatCurrency } from '@/lib/utils'
 import RecurringTransactionForm from '@/components/RecurringTransactionForm'
+import SkeletonLoader from '@/components/SkeletonLoader'
 
 export default function TransactionsPage() {
   const { selectedBusiness } = useBusiness()
@@ -452,10 +453,7 @@ export default function TransactionsPage() {
             </div>
 
             {loading ? (
-              <div className="text-center py-8">
-                <div className="w-8 h-8 border-4 border-success-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                <p className="mt-2 text-sm text-gray-600">Loading...</p>
-              </div>
+              <SkeletonLoader type="list" count={3} />
             ) : revenues.length === 0 ? (
               <div className="text-center py-8">
                 <div className="w-12 h-12 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -598,10 +596,7 @@ export default function TransactionsPage() {
             </div>
 
             {loading ? (
-              <div className="text-center py-8">
-                <div className="w-8 h-8 border-4 border-danger-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                <p className="mt-2 text-sm text-gray-600">Loading...</p>
-              </div>
+              <SkeletonLoader type="list" count={3} />
             ) : expenses.length === 0 ? (
               <div className="text-center py-8">
                 <div className="w-12 h-12 bg-danger-100 rounded-full flex items-center justify-center mx-auto mb-3">

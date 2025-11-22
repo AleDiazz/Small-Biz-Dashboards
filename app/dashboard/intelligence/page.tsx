@@ -30,6 +30,7 @@ import {
 import toast from 'react-hot-toast'
 import { formatCurrency } from '@/lib/utils'
 import { format } from 'date-fns'
+import SkeletonLoader from '@/components/SkeletonLoader'
 
 type Tab = 'insights' | 'forecast'
 type InsightFilter = 'all' | 'cost-savings' | 'anomaly' | 'opportunity' | 'warning'
@@ -44,6 +45,7 @@ export default function IntelligencePage() {
   const [optimizations, setOptimizations] = useState<CostOptimization[]>([])
   const [patterns, setPatterns] = useState<SpendingPattern[]>([])
   const [insightsLoading, setInsightsLoading] = useState(false)
+  const [insightsFetched, setInsightsFetched] = useState(false)
   const [generatingInsights, setGeneratingInsights] = useState(false)
   const [filter, setFilter] = useState<InsightFilter>('all')
 
@@ -52,31 +54,64 @@ export default function IntelligencePage() {
   const [currentForecast, setCurrentForecast] = useState<CashFlowForecast | null>(null)
   const [recurringTransactions, setRecurringTransactions] = useState<RecurringTransaction[]>([])
   const [forecastLoading, setForecastLoading] = useState(false)
+  const [forecastFetched, setForecastFetched] = useState(false)
   const [generatingForecast, setGeneratingForecast] = useState(false)
   const [selectedPeriod, setSelectedPeriod] = useState<'30' | '60' | '90'>('30')
   const [currentBalance, setCurrentBalance] = useState('0')
 
+  // Reset fetched flags when business changes
+  useEffect(() => {
+    setInsightsFetched(false)
+    setForecastFetched(false)
+    setInsights([])
+    setOptimizations([])
+    setPatterns([])
+    setForecasts([])
+    setCurrentForecast(null)
+    setRecurringTransactions([])
+  }, [selectedBusiness?.id])
+
+  // Initial data fetch - prefetch both tabs
   useEffect(() => {
     if (selectedBusiness && user) {
-      if (activeTab === 'insights') {
+      // Prefetch insights data
+      if (!insightsFetched) {
         fetchInsights()
         fetchOptimizations()
         fetchPatterns()
-      } else {
+      }
+      // Prefetch forecast data
+      if (!forecastFetched) {
         fetchForecasts()
         fetchRecurringTransactions()
       }
     }
-  }, [selectedBusiness, user, activeTab])
+  }, [selectedBusiness, user, insightsFetched, forecastFetched])
+
+  // Only fetch when switching tabs if data hasn't been fetched yet
+  useEffect(() => {
+    if (selectedBusiness && user) {
+      if (activeTab === 'insights' && !insightsFetched) {
+        fetchInsights()
+        fetchOptimizations()
+        fetchPatterns()
+      } else if (activeTab === 'forecast' && !forecastFetched) {
+        fetchForecasts()
+        fetchRecurringTransactions()
+      }
+    }
+  }, [activeTab])
 
   // Insights functions
   const fetchInsights = async () => {
     if (!selectedBusiness || !user) return
+    if (insightsFetched && insights.length > 0) return // Don't refetch if we have data
     try {
       setInsightsLoading(true)
       const response = await fetch(`/api/insights?businessId=${selectedBusiness.id}&userId=${user.uid}`)
       const data = await response.json()
       setInsights(data.insights || [])
+      setInsightsFetched(true)
     } catch (error) {
       console.error('Error fetching insights:', error)
     } finally {
@@ -86,6 +121,7 @@ export default function IntelligencePage() {
 
   const fetchOptimizations = async () => {
     if (!selectedBusiness) return
+    if (optimizations.length > 0) return // Don't refetch if we have data
     try {
       const response = await fetch(`/api/insights/optimization?businessId=${selectedBusiness.id}`)
       const data = await response.json()
@@ -97,6 +133,7 @@ export default function IntelligencePage() {
 
   const fetchPatterns = async () => {
     if (!selectedBusiness) return
+    if (patterns.length > 0) return // Don't refetch if we have data
     try {
       const response = await fetch(`/api/insights/patterns?businessId=${selectedBusiness.id}`)
       const data = await response.json()
@@ -131,6 +168,7 @@ export default function IntelligencePage() {
         }),
       ])
       toast.success('AI insights generated successfully!')
+      setInsightsFetched(false) // Reset flag to force refetch
       await Promise.all([fetchInsights(), fetchOptimizations(), fetchPatterns()])
     } catch (error) {
       console.error('Error generating insights:', error)
@@ -159,6 +197,7 @@ export default function IntelligencePage() {
   // Forecast functions
   const fetchForecasts = async () => {
     if (!selectedBusiness || !user) return
+    if (forecastFetched && forecasts.length > 0) return // Don't refetch if we have data
     try {
       setForecastLoading(true)
       const response = await fetch(`/api/forecast?businessId=${selectedBusiness.id}&userId=${user.uid}`)
@@ -167,6 +206,7 @@ export default function IntelligencePage() {
       if (data.forecasts && data.forecasts.length > 0) {
         setCurrentForecast(data.forecasts[0])
       }
+      setForecastFetched(true)
     } catch (error) {
       console.error('Error fetching forecasts:', error)
     } finally {
@@ -176,6 +216,7 @@ export default function IntelligencePage() {
 
   const fetchRecurringTransactions = async () => {
     if (!selectedBusiness || !user) return
+    if (recurringTransactions.length > 0) return // Don't refetch if we have data
     try {
       const response = await fetch(`/api/forecast/recurring?businessId=${selectedBusiness.id}&userId=${user.uid}`)
       const data = await response.json()
@@ -400,11 +441,8 @@ export default function IntelligencePage() {
 
           <div>
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Insights</h2>
-            {insightsLoading ? (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
-                <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading insights...</p>
-              </div>
+            {insightsLoading && !insightsFetched ? (
+              <SkeletonLoader type="list" count={3} />
             ) : filteredInsights.length === 0 ? (
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-12 text-center">
                 <Brain className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -429,7 +467,11 @@ export default function IntelligencePage() {
       {/* Forecast Tab Content */}
       {activeTab === 'forecast' && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {forecastLoading && !forecastFetched ? (
+            <SkeletonLoader type="stats" count={4} />
+          ) : (
+            <>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl p-5 border border-indigo-200">
               <Calendar className="w-6 h-6 text-indigo-600 mb-2" />
               <p className="text-sm text-indigo-700 font-medium mb-1">Forecasts Generated</p>
@@ -552,6 +594,8 @@ export default function IntelligencePage() {
               )}
             </div>
           </div>
+            </>
+          )}
         </>
       )}
     </div>

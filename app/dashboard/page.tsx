@@ -41,6 +41,7 @@ import toast from 'react-hot-toast'
 import Link from 'next/link'
 import ComparisonBadge from '@/components/ComparisonBadge'
 import CustomDateRangePicker from '@/components/CustomDateRangePicker'
+import SkeletonLoader from '@/components/SkeletonLoader'
 
 type TimePeriod = 'this-week' | 'this-month' | 'last-month' | 'year-to-date'
 
@@ -353,9 +354,13 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="text-center py-12">
-        <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-        <p className="mt-4 text-gray-600">Loading dashboard...</p>
+      <div className="space-y-6">
+        <SkeletonLoader type="stats" count={4} />
+        <SkeletonLoader type="chart" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <SkeletonLoader type="card" />
+          <SkeletonLoader type="card" />
+        </div>
       </div>
     )
   }

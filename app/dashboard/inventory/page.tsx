@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { InventoryItem } from '@/types'
 import toast from 'react-hot-toast'
 import { Package, Plus, Trash2, Edit2, X, AlertCircle, Minus, PlusCircle, MinusCircle } from 'lucide-react'
+import SkeletonLoader from '@/components/SkeletonLoader'
 
 export default function InventoryPage() {
   const { selectedBusiness } = useBusiness()
@@ -284,10 +285,7 @@ export default function InventoryPage() {
         </div>
         
         {loading ? (
-          <div className="p-12 text-center">
-            <div className="w-12 h-12 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading inventory...</p>
-          </div>
+          <SkeletonLoader type="table" count={5} />
         ) : inventory.length === 0 ? (
           <div className="p-12 text-center">
             <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
