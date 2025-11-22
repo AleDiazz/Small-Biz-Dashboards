@@ -72,8 +72,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { name: 'Transactions', href: '/dashboard/transactions', icon: DollarSign },
     { name: 'Inventory', href: '/dashboard/inventory', icon: Package },
     { name: 'Taxes', href: '/dashboard/taxes', icon: Calculator },
-    { name: 'Insights', href: '/dashboard/insights', icon: Lightbulb },
-    { name: 'Forecast', href: '/dashboard/forecast', icon: LineChart },
+    { name: 'Intelligence', href: '/dashboard/intelligence', icon: Lightbulb },
   ]
 
   return (
