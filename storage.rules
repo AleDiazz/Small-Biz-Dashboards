@@ -23,6 +23,31 @@ service firebase.storage {
                       firestore.get(/databases/(default)/documents/businesses/$(businessId)).data.userId == request.auth.uid;
     }
     
+    // Expense receipts - only accessible by business owner
+    // Path format: receipts/{businessId}/{expenseId}/{filename}
+    match /receipts/{businessId}/{expenseId}/{filename} {
+      allow read: if isSignedIn() && 
+                     firestore.exists(/databases/(default)/documents/businesses/$(businessId)) &&
+                     firestore.get(/databases/(default)/documents/businesses/$(businessId)).data.userId == request.auth.uid;
+      allow write: if isSignedIn() && 
+                      firestore.exists(/databases/(default)/documents/businesses/$(businessId)) &&
+                      firestore.get(/databases/(default)/documents/businesses/$(businessId)).data.userId == request.auth.uid &&
+                      // Verify the expense belongs to this business
+                      firestore.exists(/databases/(default)/documents/expenses/$(expenseId)) &&
+                      firestore.get(/databases/(default)/documents/expenses/$(expenseId)).data.businessId == businessId;
+    }
+    
+    // Tax documents and reports - only accessible by business owner
+    // Path format: tax-documents/{businessId}/{documentType}/{filename}
+    match /tax-documents/{businessId}/{documentType}/{filename} {
+      allow read: if isSignedIn() && 
+                     firestore.exists(/databases/(default)/documents/businesses/$(businessId)) &&
+                     firestore.get(/databases/(default)/documents/businesses/$(businessId)).data.userId == request.auth.uid;
+      allow write: if isSignedIn() && 
+                      firestore.exists(/databases/(default)/documents/businesses/$(businessId)) &&
+                      firestore.get(/databases/(default)/documents/businesses/$(businessId)).data.userId == request.auth.uid;
+    }
+    
     // Deny all other access
     match /{allPaths=**} {
       allow read, write: if false;

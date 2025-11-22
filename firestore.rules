@@ -78,6 +78,135 @@ service cloud.firestore {
       allow delete: if ownsBusiness(resource.data.businessId);
     }
     
+    // Tax Settings collection - users can only access tax settings from their businesses
+    match /taxSettings/{settingsId} {
+      allow read: if ownsBusiness(resource.data.businessId);
+      allow create: if isSignedIn() && 
+                       ownsBusiness(request.resource.data.businessId) &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.keys().hasAll(['businessId', 'userId']);
+      allow update: if ownsBusiness(resource.data.businessId) &&
+                       // Prevent changing the business or user association
+                       request.resource.data.businessId == resource.data.businessId &&
+                       request.resource.data.userId == resource.data.userId;
+      allow delete: if ownsBusiness(resource.data.businessId);
+    }
+    
+    // Tax Reports collection - users can only access tax reports from their businesses
+    match /taxReports/{reportId} {
+      allow read: if ownsBusiness(resource.data.businessId);
+      allow create: if isSignedIn() && 
+                       ownsBusiness(request.resource.data.businessId) &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.keys().hasAll(['businessId', 'userId', 'reportType', 'year', 'createdAt']);
+      allow update: if ownsBusiness(resource.data.businessId) &&
+                       // Prevent changing the business or user association
+                       request.resource.data.businessId == resource.data.businessId &&
+                       request.resource.data.userId == resource.data.userId;
+      allow delete: if ownsBusiness(resource.data.businessId);
+    }
+    
+    // Tax Categories collection - users can only access tax categories from their businesses
+    match /taxCategories/{categoryId} {
+      allow read: if ownsBusiness(resource.data.businessId);
+      allow create: if isSignedIn() && 
+                       ownsBusiness(request.resource.data.businessId) &&
+                       request.resource.data.keys().hasAll(['businessId', 'name', 'deductible', 'deductionType']);
+      allow update: if ownsBusiness(resource.data.businessId) &&
+                       // Prevent changing the business association
+                       request.resource.data.businessId == resource.data.businessId;
+      allow delete: if ownsBusiness(resource.data.businessId);
+    }
+    
+    // Expense Tax Info collection - users can only access expense tax info from their businesses
+    match /expenseTaxInfo/{taxInfoId} {
+      allow read: if isSignedIn() && 
+                     exists(/databases/$(database)/documents/expenses/$(resource.data.expenseId)) &&
+                     get(/databases/$(database)/documents/expenses/$(resource.data.expenseId)).data.businessId != null &&
+                     ownsBusiness(get(/databases/$(database)/documents/expenses/$(resource.data.expenseId)).data.businessId);
+      allow create: if isSignedIn() && 
+                       request.resource.data.keys().hasAll(['expenseId', 'deductible', 'deductionAmount', 'receiptAttached', 'createdAt']) &&
+                       exists(/databases/$(database)/documents/expenses/$(request.resource.data.expenseId)) &&
+                       get(/databases/$(database)/documents/expenses/$(request.resource.data.expenseId)).data.businessId != null &&
+                       ownsBusiness(get(/databases/$(database)/documents/expenses/$(request.resource.data.expenseId)).data.businessId);
+      allow update: if isSignedIn() &&
+                       exists(/databases/$(database)/documents/expenses/$(resource.data.expenseId)) &&
+                       get(/databases/$(database)/documents/expenses/$(resource.data.expenseId)).data.businessId != null &&
+                       ownsBusiness(get(/databases/$(database)/documents/expenses/$(resource.data.expenseId)).data.businessId) &&
+                       // Prevent changing the expense association
+                       request.resource.data.expenseId == resource.data.expenseId;
+      allow delete: if isSignedIn() &&
+                       exists(/databases/$(database)/documents/expenses/$(resource.data.expenseId)) &&
+                       get(/databases/$(database)/documents/expenses/$(resource.data.expenseId)).data.businessId != null &&
+                       ownsBusiness(get(/databases/$(database)/documents/expenses/$(resource.data.expenseId)).data.businessId);
+    }
+    
+    // Insights collection - users can only access insights from their businesses
+    match /insights/{insightId} {
+      allow read: if ownsBusiness(resource.data.businessId);
+      allow create: if isSignedIn() && 
+                       ownsBusiness(request.resource.data.businessId) &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.keys().hasAll(['businessId', 'userId', 'type', 'title', 'description', 'createdAt']);
+      allow update: if ownsBusiness(resource.data.businessId) &&
+                       // Prevent changing the business or user association
+                       request.resource.data.businessId == resource.data.businessId &&
+                       request.resource.data.userId == resource.data.userId;
+      allow delete: if ownsBusiness(resource.data.businessId);
+    }
+    
+    // Spending Patterns collection - users can only access spending patterns from their businesses
+    match /spendingPatterns/{patternId} {
+      allow read: if ownsBusiness(resource.data.businessId);
+      allow create: if isSignedIn() && 
+                       ownsBusiness(request.resource.data.businessId) &&
+                       request.resource.data.keys().hasAll(['businessId', 'category', 'averageMonthly', 'lastUpdated']);
+      allow update: if ownsBusiness(resource.data.businessId) &&
+                       // Prevent changing the business association
+                       request.resource.data.businessId == resource.data.businessId;
+      allow delete: if ownsBusiness(resource.data.businessId);
+    }
+    
+    // Cost Optimizations collection - users can only access cost optimizations from their businesses
+    match /costOptimizations/{optimizationId} {
+      allow read: if ownsBusiness(resource.data.businessId);
+      allow create: if isSignedIn() && 
+                       ownsBusiness(request.resource.data.businessId) &&
+                       request.resource.data.keys().hasAll(['businessId', 'category', 'currentSpend', 'recommendedSpend', 'potentialSavings', 'createdAt']);
+      allow update: if ownsBusiness(resource.data.businessId) &&
+                       // Prevent changing the business association
+                       request.resource.data.businessId == resource.data.businessId;
+      allow delete: if ownsBusiness(resource.data.businessId);
+    }
+    
+    // Cash Flow Forecasts collection - users can only access forecasts from their businesses
+    match /cashFlowForecasts/{forecastId} {
+      allow read: if ownsBusiness(resource.data.businessId);
+      allow create: if isSignedIn() && 
+                       ownsBusiness(request.resource.data.businessId) &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.keys().hasAll(['businessId', 'userId', 'forecastPeriod', 'startDate', 'endDate', 'createdAt']);
+      allow update: if ownsBusiness(resource.data.businessId) &&
+                       // Prevent changing the business or user association
+                       request.resource.data.businessId == resource.data.businessId &&
+                       request.resource.data.userId == resource.data.userId;
+      allow delete: if ownsBusiness(resource.data.businessId);
+    }
+    
+    // Recurring Transactions collection - users can only access recurring transactions from their businesses
+    match /recurringTransactions/{transactionId} {
+      allow read: if ownsBusiness(resource.data.businessId);
+      allow create: if isSignedIn() && 
+                       ownsBusiness(request.resource.data.businessId) &&
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.keys().hasAll(['businessId', 'userId', 'type', 'name', 'amount', 'frequency', 'startDate', 'active', 'createdAt']);
+      allow update: if ownsBusiness(resource.data.businessId) &&
+                       // Prevent changing the business or user association
+                       request.resource.data.businessId == resource.data.businessId &&
+                       request.resource.data.userId == resource.data.userId;
+      allow delete: if ownsBusiness(resource.data.businessId);
+    }
+    
     // Deny all other access
     match /{document=**} {
       allow read, write: if false;
