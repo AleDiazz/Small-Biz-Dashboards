@@ -32,7 +32,20 @@ export default function AddBusinessPage() {
   const [loading, setLoading] = useState(false)
 
   const currentTier = SUBSCRIPTION_TIERS.find(t => t.id === userData?.subscriptionTier)
-  const canAddBusiness = currentTier?.businessLimit === null || (currentTier?.businessLimit ? businesses.length < currentTier.businessLimit : false)
+  const canAddBusiness = !currentTier 
+    ? false 
+    : currentTier.businessLimit === null 
+    ? true 
+    : businesses.length < currentTier.businessLimit
+
+  // Debug logging (remove this in production)
+  console.log('Add Business Debug:', {
+    subscriptionTier: userData?.subscriptionTier,
+    currentTier: currentTier?.name,
+    businessLimit: currentTier?.businessLimit,
+    currentBusinessCount: businesses.length,
+    canAddBusiness
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
