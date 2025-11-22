@@ -3,16 +3,36 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useBusiness } from '@/hooks/useBusiness'
-import { SUBSCRIPTION_TIERS } from '@/types'
-import { User, CreditCard, Building2, Crown, Loader2 } from 'lucide-react'
+import { SUBSCRIPTION_TIERS, Business } from '@/types'
+import { User, CreditCard, Building2, Crown, Loader2, Edit2, Trash2, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useSearchParams } from 'next/navigation'
+import { doc, updateDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+
+const BUSINESS_TYPES = [
+  'Food Truck',
+  'Salon',
+  'Personal Trainer',
+  'Boutique',
+  'Restaurant',
+  'Cafe',
+  'Retail Store',
+  'Service Business',
+  'Other',
+]
 
 export default function SettingsPage() {
   const { user, userData } = useAuth()
-  const { businesses } = useBusiness()
+  const { businesses, selectedBusiness, setSelectedBusiness } = useBusiness()
   const searchParams = useSearchParams()
   const [loading, setLoading] = useState<string | null>(null)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingBusiness, setEditingBusiness] = useState<Business | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editType, setEditType] = useState('')
+  const [editCurrency, setEditCurrency] = useState('USD')
+  const [deleting, setDeleting] = useState<string | null>(null)
 
   const currentTier = SUBSCRIPTION_TIERS.find(t => t.id === userData?.subscriptionTier)
 
@@ -82,6 +102,84 @@ export default function SettingsPage() {
       toast.error(error.message || 'Failed to process subscription change')
     } finally {
       setLoading(null)
+    }
+  }
+
+  // Handle edit business
+  const handleEditClick = (business: Business) => {
+    setEditingBusiness(business)
+    setEditName(business.name)
+    setEditType(business.type)
+    setEditCurrency(business.currency || 'USD')
+    setShowEditModal(true)
+  }
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingBusiness) return
+
+    setLoading('edit')
+    try {
+      await updateDoc(doc(db, 'businesses', editingBusiness.id), {
+        name: editName,
+        type: editType,
+        currency: editCurrency,
+      })
+
+      toast.success('Business updated successfully!')
+      setShowEditModal(false)
+      setEditingBusiness(null)
+    } catch (error) {
+      console.error('Error updating business:', error)
+      toast.error('Failed to update business')
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setShowEditModal(false)
+    setEditingBusiness(null)
+    setEditName('')
+    setEditType('')
+    setEditCurrency('USD')
+  }
+
+  // Handle delete business
+  const handleDeleteBusiness = async (business: Business) => {
+    const confirmMessage = `Are you sure you want to delete "${business.name}"?\n\nThis will permanently delete:\n- All revenue entries\n- All expense entries\n- All inventory items\n\nThis action cannot be undone.`
+    
+    if (!confirm(confirmMessage)) return
+
+    setDeleting(business.id)
+    try {
+      // Delete all related data
+      const collections = ['revenues', 'expenses', 'inventory']
+      
+      for (const collectionName of collections) {
+        const q = query(
+          collection(db, collectionName),
+          where('businessId', '==', business.id)
+        )
+        const snapshot = await getDocs(q)
+        const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref))
+        await Promise.all(deletePromises)
+      }
+
+      // Delete the business itself
+      await deleteDoc(doc(db, 'businesses', business.id))
+
+      // If this was the selected business, clear the selection
+      if (selectedBusiness?.id === business.id) {
+        setSelectedBusiness(null)
+      }
+
+      toast.success('Business deleted successfully!')
+    } catch (error) {
+      console.error('Error deleting business:', error)
+      toast.error('Failed to delete business')
+    } finally {
+      setDeleting(null)
     }
   }
 
@@ -285,22 +383,57 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="space-y-3">
-          {businesses.map((business) => (
-            <div
-              key={business.id}
-              className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              <div>
-                <h3 className="font-semibold text-gray-900">{business.name}</h3>
-                <p className="text-sm text-gray-600">{business.type}</p>
+        {businesses.length === 0 ? (
+          <div className="text-center py-8">
+            <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-600">No businesses yet</p>
+            <p className="text-sm text-gray-500 mt-1">Create your first business to get started</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {businesses.map((business) => (
+              <div
+                key={business.id}
+                className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-gray-900">{business.name}</h3>
+                    {selectedBusiness?.id === business.id && (
+                      <span className="text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded-full font-medium">
+                        Active
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-600">{business.type}</p>
+                  <p className="text-xs text-gray-500 mt-1">Currency: {business.currency || 'USD'}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleEditClick(business)}
+                    disabled={deleting === business.id}
+                    className="p-2 text-gray-600 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50"
+                    title="Edit business"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteBusiness(business)}
+                    disabled={deleting === business.id}
+                    className="p-2 text-danger-600 hover:bg-danger-50 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1"
+                    title="Delete business"
+                  >
+                    {deleting === business.id ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
               </div>
-              <span className="text-xs bg-success-100 text-success-700 px-3 py-1 rounded-full font-medium">
-                Active
-              </span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Payment Method */}
@@ -345,6 +478,107 @@ export default function SettingsPage() {
           </div>
         )}
       </div>
+
+      {/* Edit Business Modal */}
+      {showEditModal && editingBusiness && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full">
+            <div className="bg-gradient-to-r from-primary-500 to-primary-600 px-6 py-4 rounded-t-2xl flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                  <Building2 className="w-5 h-5 text-white" />
+                </div>
+                <h2 className="text-xl font-bold text-white">Edit Business</h2>
+              </div>
+              <button 
+                onClick={handleCancelEdit}
+                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditSubmit} className="p-6 space-y-5">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Business Name *
+                </label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="e.g., Maria's Food Truck"
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Business Type *
+                </label>
+                <select
+                  value={editType}
+                  onChange={(e) => setEditType(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                  <option value="">Select a type</option>
+                  {BUSINESS_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Currency *
+                </label>
+                <select
+                  value={editCurrency}
+                  onChange={(e) => setEditCurrency(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="GBP">GBP (£)</option>
+                  <option value="CAD">CAD ($)</option>
+                  <option value="AUD">AUD ($)</option>
+                  <option value="MXN">MXN ($)</option>
+                </select>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  disabled={loading === 'edit'}
+                  className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading === 'edit'}
+                  className="flex-1 px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {loading === 'edit' ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
