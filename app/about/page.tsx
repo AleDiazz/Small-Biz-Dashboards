@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { TrendingUp, ArrowLeft, Target, Heart, Users } from 'lucide-react'
+import Image from 'next/image'
+import { ArrowLeft, Target, Heart, Users } from 'lucide-react'
 import { generateMetadata } from '@/lib/seo'
 import type { Metadata } from 'next'
 
@@ -15,8 +16,13 @@ export default function AboutPage() {
       {/* Navigation */}
       <nav className="container mx-auto px-4 py-6 flex justify-between items-center">
         <Link href="/" className="flex items-center space-x-2">
-          <div className="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center">
-            <TrendingUp className="w-6 h-6 text-white" />
+          <div className="w-10 h-10 relative">
+            <Image 
+              src="/logo.png" 
+              alt="LedgerAI" 
+              fill 
+              className="object-contain"
+            />
           </div>
           <span className="text-2xl font-bold text-gray-900">LedgerAI</span>
         </Link>

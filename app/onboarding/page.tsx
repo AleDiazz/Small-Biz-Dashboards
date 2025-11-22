@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { collection, addDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { useAuth } from '@/hooks/useAuth'
 import toast from 'react-hot-toast'
-import { TrendingUp, Store, ArrowRight } from 'lucide-react'
+import { Store, ArrowRight } from 'lucide-react'
 
 const BUSINESS_TYPES = [
   'Food Truck',
@@ -76,8 +77,13 @@ export default function OnboardingPage() {
       <div className="w-full max-w-2xl">
         {/* Logo */}
         <div className="flex items-center justify-center space-x-2 mb-8">
-          <div className="w-12 h-12 bg-primary-500 rounded-lg flex items-center justify-center">
-            <TrendingUp className="w-7 h-7 text-white" />
+          <div className="w-12 h-12 relative">
+            <Image 
+              src="/logo.png" 
+              alt="LedgerAI" 
+              fill 
+              className="object-contain"
+            />
           </div>
           <span className="text-3xl font-bold text-gray-900">LedgerAI</span>
         </div>

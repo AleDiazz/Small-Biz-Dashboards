@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowRight, BarChart3, DollarSign, Package, FileText, TrendingUp, Facebook, Instagram } from 'lucide-react'
 import { generateMetadata } from '@/lib/seo'
 import type { Metadata } from 'next'
@@ -15,8 +16,13 @@ export default function LandingPage() {
       {/* Navigation */}
       <nav className="container mx-auto px-4 py-6 flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <div className="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center">
-            <TrendingUp className="w-6 h-6 text-white" />
+          <div className="w-10 h-10 relative">
+            <Image 
+              src="/logo.png" 
+              alt="LedgerAI" 
+              fill 
+              className="object-contain"
+            />
           </div>
           <span className="text-2xl font-bold text-gray-900">LedgerAI</span>
         </div>
@@ -335,8 +341,13 @@ export default function LandingPage() {
           {/* Copyright */}
           <div className="flex flex-col md:flex-row items-center justify-between w-full">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 relative">
+                <Image 
+                  src="/logo.png" 
+                  alt="LedgerAI" 
+                  fill 
+                  className="object-contain"
+                />
               </div>
               <span className="text-xl font-bold text-gray-900">LedgerAI</span>
             </div>

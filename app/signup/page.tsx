@@ -2,12 +2,13 @@
 
 import { useState, Suspense } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { doc, setDoc } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase'
 import toast from 'react-hot-toast'
-import { TrendingUp, Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react'
+import { Mail, Lock, User as UserIcon, ArrowRight } from 'lucide-react'
 
 function SignupForm() {
   const router = useRouter()
@@ -68,8 +69,13 @@ function SignupForm() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="flex items-center justify-center space-x-2 mb-8">
-          <div className="w-12 h-12 bg-primary-500 rounded-lg flex items-center justify-center">
-            <TrendingUp className="w-7 h-7 text-white" />
+          <div className="w-12 h-12 relative">
+            <Image 
+              src="/logo.png" 
+              alt="LedgerAI" 
+              fill 
+              className="object-contain"
+            />
           </div>
           <span className="text-3xl font-bold text-gray-900">LedgerAI</span>
         </Link>

@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://ledgerai.com'
+const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://ledgerai.com').replace(/\/$/, '')
 const siteName = 'LedgerAI'
 const defaultDescription = 'Track expenses, revenue, and inventory for your small business in Puerto Rico. Simple, powerful tools designed for food trucks, salons, trainers, boutiques, and more.'
 
