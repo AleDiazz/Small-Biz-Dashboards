@@ -11,6 +11,7 @@ export interface SEOConfig {
   image?: string
   noindex?: boolean
   nofollow?: boolean
+  keywords?: string | string[]
 }
 
 export function generateMetadata({
@@ -20,14 +21,16 @@ export function generateMetadata({
   image = '/og-image.jpg',
   noindex = false,
   nofollow = false,
+  keywords,
 }: SEOConfig): Metadata {
-  const fullTitle = title ? `${title} | ${siteName}` : `${siteName} - AI-Powered Business Dashboard`
+  const fullTitle = title ? `${siteName} – ${title}` : `${siteName} - AI-Powered Business Dashboard`
   const url = `${siteUrl}${path}`
   const imageUrl = image.startsWith('http') ? image : `${siteUrl}${image}`
 
   return {
     title: fullTitle,
     description,
+    keywords: keywords ? (Array.isArray(keywords) ? keywords.join(', ') : keywords) : undefined,
     metadataBase: new URL(siteUrl),
     alternates: {
       canonical: url,
