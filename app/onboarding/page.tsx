@@ -79,7 +79,7 @@ export default function OnboardingPage() {
           <div className="w-12 h-12 bg-primary-500 rounded-lg flex items-center justify-center">
             <TrendingUp className="w-7 h-7 text-white" />
           </div>
-          <span className="text-3xl font-bold text-gray-900">BizOps Lite</span>
+          <span className="text-3xl font-bold text-gray-900">LedgerAI</span>
         </div>
 
         {/* Onboarding Card */}
@@ -171,7 +171,7 @@ export default function OnboardingPage() {
 
         {/* Help Text */}
         <p className="text-center text-gray-500 text-sm mt-6">
-          Need help? Contact us at support@bizopslite.com
+          Need help? Contact us at support@ledgerai.com
         </p>
       </div>
     </div>

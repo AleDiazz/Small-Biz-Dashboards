@@ -38,7 +38,7 @@ export default function LoginPage() {
           <div className="w-12 h-12 bg-primary-500 rounded-lg flex items-center justify-center">
             <TrendingUp className="w-7 h-7 text-white" />
           </div>
-          <span className="text-3xl font-bold text-gray-900">BizOps Lite</span>
+          <span className="text-3xl font-bold text-gray-900">LedgerAI</span>
         </Link>
 
         {/* Login Card */}

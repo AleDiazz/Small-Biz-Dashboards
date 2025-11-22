@@ -87,7 +87,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
                   <TrendingUp className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold text-gray-900 hidden sm:block">BizOps Lite</span>
+                <span className="text-xl font-bold text-gray-900 hidden sm:block">LedgerAI</span>
               </Link>
 
               {/* Business Selector */}

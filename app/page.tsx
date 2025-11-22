@@ -1,5 +1,13 @@
 import Link from 'next/link'
 import { ArrowRight, BarChart3, DollarSign, Package, FileText, TrendingUp, Facebook, Instagram } from 'lucide-react'
+import { generateMetadata } from '@/lib/seo'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = generateMetadata({
+  title: 'Home',
+  description: 'Manage your small business with confidence. Track expenses, revenue, and inventory in one simple dashboard. Built for food trucks, salons, trainers, boutiques, and more. Starting at $15/month.',
+  path: '/',
+})
 
 export default function LandingPage() {
   return (
@@ -10,7 +18,7 @@ export default function LandingPage() {
           <div className="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center">
             <TrendingUp className="w-6 h-6 text-white" />
           </div>
-          <span className="text-2xl font-bold text-gray-900">BizOps Lite</span>
+          <span className="text-2xl font-bold text-gray-900">LedgerAI</span>
         </div>
         <div className="flex items-center space-x-4">
           <Link 
@@ -276,7 +284,7 @@ export default function LandingPage() {
             Ready to Take Control of Your Business?
           </h2>
           <p className="text-xl text-primary-100 mb-8 max-w-2xl mx-auto">
-            Join hundreds of small business owners who trust BizOps Lite.
+            Join hundreds of small business owners who trust LedgerAI.
           </p>
           <Link 
             href="/signup"
@@ -330,10 +338,10 @@ export default function LandingPage() {
               <div className="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-900">BizOps Lite</span>
+              <span className="text-xl font-bold text-gray-900">LedgerAI</span>
             </div>
             <p className="text-gray-600 text-center">
-              © 2025 BizOps Lite. Made with love for small businesses. All rights reserved.
+              © 2025 LedgerAI. Made with love for small businesses. All rights reserved.
             </p>
           </div>
         </div>

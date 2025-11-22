@@ -1,4 +1,4 @@
-# 🚀 BizOps Lite v2 - Small Business Dashboard
+# 🚀 LedgerAI - AI-Powered Business Dashboard
 
 A modern, AI-powered dashboard for small businesses featuring advanced financial intelligence, tax management, and cash flow forecasting. Track revenue, expenses, inventory, and make data-driven decisions with confidence.
 
@@ -199,7 +199,7 @@ Visit `http://localhost:3000`
 1. **Create Firebase Project**
    - Go to [Firebase Console](https://console.firebase.google.com/)
    - Click "Add project"
-   - Name: "BizOps Lite"
+   - Name: "LedgerAI"
    - Enable Google Analytics (optional)
 
 2. **Enable Authentication**

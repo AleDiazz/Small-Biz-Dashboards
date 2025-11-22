@@ -78,7 +78,7 @@ export async function generateComprehensiveReport(data: ReportData) {
   doc.setTextColor(255, 255, 255)
   doc.setFontSize(24)
   doc.setFont('helvetica', 'bold')
-  doc.text('BizOps Lite', 14, 20)
+  doc.text('LedgerAI', 14, 20)
   
   doc.setFontSize(18)
   doc.text('Comprehensive Business Report', 14, 30)
@@ -1298,7 +1298,7 @@ export async function generateComprehensiveReport(data: ReportData) {
     doc.setFontSize(8)
     doc.setTextColor(150, 150, 150)
     doc.text(
-      `Page ${i} of ${pageCount} | BizOps Lite © ${new Date().getFullYear()} | ${business.name}`,
+      `Page ${i} of ${pageCount} | LedgerAI © ${new Date().getFullYear()} | ${business.name}`,
       doc.internal.pageSize.width / 2,
       doc.internal.pageSize.height - 10,
       { align: 'center' }

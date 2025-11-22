@@ -1,4 +1,4 @@
-// Utility functions for BizOps Lite
+// Utility functions for LedgerAI
 
 /**
  * Format currency to USD with proper formatting
