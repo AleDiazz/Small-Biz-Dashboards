@@ -177,7 +177,7 @@ Visit `http://localhost:3000`
 
 - **Framework**: Next.js 14 (App Router)
 - **Language**: TypeScript
-- **Styling**: Tailwind CSS + Framer Motion
+- **Styling**: Tailwind CSS
 - **Database**: Firebase Firestore
 - **Authentication**: Firebase Auth
 - **Storage**: Firebase Storage
@@ -561,7 +561,6 @@ The PDF uses consistent color coding:
 ├── components/                          # React components
 │   ├── DashboardLayout.tsx             # Main layout with nav
 │   ├── FloatingActionButton.tsx        # Quick action FAB
-│   ├── TimeRangeSelector.tsx           # Time period filter
 │   ├── ComparisonBadge.tsx             # Trend indicators
 │   ├── TaxSettingsForm.tsx            # 🆕 Tax configuration
 │   ├── TaxReportCard.tsx              # 🆕 Tax report display
