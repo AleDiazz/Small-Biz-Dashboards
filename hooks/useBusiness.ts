@@ -6,6 +6,8 @@ import { db } from '@/lib/firebase'
 import { Business } from '@/types'
 import { useAuth } from './useAuth'
 
+const SELECTED_BUSINESS_KEY = 'selectedBusinessId'
+
 export function useBusiness() {
   const { user } = useAuth()
   const [businesses, setBusinesses] = useState<Business[]>([])
@@ -16,6 +18,7 @@ export function useBusiness() {
     if (!user) {
       setBusinesses([])
       setSelectedBusiness(null)
+      localStorage.removeItem(SELECTED_BUSINESS_KEY)
       setLoading(false)
       return
     }
@@ -29,12 +32,24 @@ export function useBusiness() {
       })
       setBusinesses(businessList)
       
-      // Auto-select first business if none selected
+      // Try to restore previously selected business from localStorage
+      const savedBusinessId = localStorage.getItem(SELECTED_BUSINESS_KEY)
+      const savedBusiness = businessList.find(b => b.id === savedBusinessId)
+      
       setSelectedBusiness(prev => {
-        if (businessList.length > 0 && !prev) {
+        // If there's a previously selected business and it still exists, keep it
+        if (prev && businessList.find(b => b.id === prev.id)) {
+          return prev
+        }
+        // If there's a saved business in localStorage, use it
+        if (savedBusiness) {
+          return savedBusiness
+        }
+        // Otherwise, auto-select first business if none selected
+        if (businessList.length > 0) {
           return businessList[0]
         }
-        return prev
+        return null
       })
       
       setLoading(false)
@@ -43,6 +58,21 @@ export function useBusiness() {
     return () => unsubscribe()
   }, [user])
 
-  return { businesses, selectedBusiness, setSelectedBusiness, loading }
+  // Save selected business to localStorage whenever it changes
+  const handleSetSelectedBusiness = (business: Business | null) => {
+    setSelectedBusiness(business)
+    if (business) {
+      localStorage.setItem(SELECTED_BUSINESS_KEY, business.id)
+    } else {
+      localStorage.removeItem(SELECTED_BUSINESS_KEY)
+    }
+  }
+
+  return { 
+    businesses, 
+    selectedBusiness, 
+    setSelectedBusiness: handleSetSelectedBusiness, 
+    loading 
+  }
 }
 

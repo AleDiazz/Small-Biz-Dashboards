@@ -105,7 +105,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                         <button
                           key={business.id}
                           onClick={() => {
-                            setSelectedBusiness(business)
+                            if (selectedBusiness?.id !== business.id) {
+                              setSelectedBusiness(business)
+                              toast.success(`Switched to ${business.name}`)
+                            }
                             setBusinessDropdownOpen(false)
                           }}
                           className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${
