@@ -14,6 +14,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/features',
     '/login',
     '/signup',
+    // Legal pages
+    '/legal/terms-of-service',
+    '/legal/privacy-policy',
+    '/legal/refund-policy',
+    '/legal/cookie-policy',
+    '/legal/data-processing-addendum',
+    '/legal/acceptable-use-policy',
+    '/legal/sla',
   ]
 
   return routes.map((route) => ({

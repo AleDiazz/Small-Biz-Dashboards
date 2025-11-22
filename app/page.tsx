@@ -338,6 +338,28 @@ export default function LandingPage() {
             </a>
           </div>
           
+          {/* Legal Links */}
+          <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-600">
+            <Link href="/legal/terms-of-service" className="hover:text-primary-500 transition-colors">
+              Terms of Service
+            </Link>
+            <Link href="/legal/privacy-policy" className="hover:text-primary-500 transition-colors">
+              Privacy Policy
+            </Link>
+            <Link href="/legal/refund-policy" className="hover:text-primary-500 transition-colors">
+              Refund Policy
+            </Link>
+            <Link href="/legal/cookie-policy" className="hover:text-primary-500 transition-colors">
+              Cookie Policy
+            </Link>
+            <Link href="/legal/acceptable-use-policy" className="hover:text-primary-500 transition-colors">
+              Acceptable Use
+            </Link>
+            <Link href="/legal/sla" className="hover:text-primary-500 transition-colors">
+              SLA
+            </Link>
+          </div>
+          
           {/* Copyright */}
           <div className="flex flex-col md:flex-row items-center justify-between w-full">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
