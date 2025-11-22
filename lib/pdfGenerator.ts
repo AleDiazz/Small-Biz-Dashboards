@@ -1,7 +1,21 @@
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { format } from 'date-fns'
-import { Expense, Revenue, InventoryItem, Business } from '@/types'
+import { 
+  Expense, 
+  Revenue, 
+  InventoryItem, 
+  Business,
+  TaxReport,
+  TaxSettings,
+  ExpenseTaxInfo,
+  TaxCategory,
+  Insight,
+  SpendingPattern,
+  CostOptimization,
+  CashFlowForecast,
+  RecurringTransaction
+} from '@/types'
 import { firestoreTimestampToDate } from './utils'
 
 interface ReportData {
@@ -11,10 +25,36 @@ interface ReportData {
   inventory: InventoryItem[]
   startDate: Date
   endDate: Date
+  // New optional data for PRD v2 features
+  taxReport?: TaxReport
+  taxSettings?: TaxSettings
+  expenseTaxInfo?: ExpenseTaxInfo[]
+  taxCategories?: TaxCategory[]
+  insights?: Insight[]
+  spendingPatterns?: SpendingPattern[]
+  costOptimizations?: CostOptimization[]
+  cashFlowForecast?: CashFlowForecast
+  recurringTransactions?: RecurringTransaction[]
 }
 
 export async function generateComprehensiveReport(data: ReportData) {
-  const { business, revenues, expenses, inventory, startDate, endDate } = data
+  const { 
+    business, 
+    revenues, 
+    expenses, 
+    inventory, 
+    startDate, 
+    endDate,
+    taxReport,
+    taxSettings,
+    expenseTaxInfo,
+    taxCategories,
+    insights,
+    spendingPatterns,
+    costOptimizations,
+    cashFlowForecast,
+    recurringTransactions
+  } = data
   const doc = new jsPDF()
 
   // Calculate all metrics
@@ -593,6 +633,662 @@ export async function generateComprehensiveReport(data: ReportData) {
     doc.setFontSize(10)
     doc.setTextColor(100, 100, 100)
     doc.text('No inventory data available', 14, yPos)
+  }
+
+  // ===== PAGE 5: TAX ANALYSIS (if available) =====
+  if (data.taxReport || data.expenseTaxInfo) {
+    doc.addPage()
+    yPos = 20
+    
+    doc.setFontSize(16)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(99, 102, 241) // Indigo
+    doc.text('Tax Analysis', 14, yPos)
+    
+    yPos += 10
+    
+    if (data.taxReport) {
+      const taxReport = data.taxReport
+      
+      // Tax Summary Box
+      doc.setFillColor(238, 242, 255) // Light indigo
+      doc.roundedRect(14, yPos, 182, 70, 3, 3, 'F')
+      
+      yPos += 10
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text('Tax Summary', 20, yPos)
+      
+      yPos += 10
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'bold')
+      
+      // Total Revenue
+      doc.setTextColor(34, 197, 94)
+      doc.text('Total Revenue:', 20, yPos)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`$${taxReport.totalRevenue.toFixed(2)}`, 80, yPos)
+      
+      yPos += 8
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text('Total Expenses:', 20, yPos)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`$${taxReport.totalExpenses.toFixed(2)}`, 80, yPos)
+      
+      yPos += 8
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(59, 130, 246) // Blue
+      doc.text('Deductible Expenses:', 20, yPos)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`$${taxReport.deductibleExpenses.toFixed(2)}`, 80, yPos)
+      doc.setTextColor(100, 100, 100)
+      const deductiblePercentage = taxReport.totalExpenses > 0 
+        ? (taxReport.deductibleExpenses / taxReport.totalExpenses * 100).toFixed(1)
+        : '0'
+      doc.text(`(${deductiblePercentage}% of expenses)`, 140, yPos)
+      
+      yPos += 8
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(168, 85, 247) // Purple
+      doc.text('Taxable Income:', 20, yPos)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`$${taxReport.taxableIncome.toFixed(2)}`, 80, yPos)
+      
+      yPos += 8
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(239, 68, 68) // Red
+      doc.text('Estimated Tax Owed:', 20, yPos)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`$${taxReport.estimatedTaxOwed.toFixed(2)}`, 80, yPos)
+      
+      if (taxReport.salesTaxCollected > 0 || taxReport.salesTaxOwed > 0) {
+        yPos += 8
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(234, 179, 8) // Yellow
+        doc.text('Sales Tax Collected:', 20, yPos)
+        doc.setFont('helvetica', 'normal')
+        doc.text(`$${taxReport.salesTaxCollected.toFixed(2)}`, 80, yPos)
+        
+        yPos += 8
+        doc.setFont('helvetica', 'bold')
+        doc.text('Sales Tax Owed:', 20, yPos)
+        doc.setFont('helvetica', 'normal')
+        doc.text(`$${taxReport.salesTaxOwed.toFixed(2)}`, 80, yPos)
+      }
+      
+      yPos += 15
+      
+      // Tax Settings Info
+      if (data.taxSettings) {
+        doc.setFontSize(12)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(0, 0, 0)
+        doc.text('Tax Configuration', 14, yPos)
+        
+        yPos += 8
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'normal')
+        doc.text(`Business Type: ${data.taxSettings.businessType.toUpperCase().replace('-', ' ')}`, 14, yPos)
+        
+        yPos += 6
+        doc.text(`Tax Year: ${data.taxSettings.taxYear}`, 14, yPos)
+        
+        yPos += 6
+        doc.text(`Federal Tax Rate: ${(data.taxSettings.federalTaxRate * 100).toFixed(1)}%`, 14, yPos)
+        
+        yPos += 6
+        doc.text(`State Tax Rate: ${(data.taxSettings.stateTaxRate * 100).toFixed(1)}%`, 14, yPos)
+        
+        yPos += 6
+        doc.text(`Sales Tax Rate: ${(data.taxSettings.salesTaxRate * 100).toFixed(1)}%`, 14, yPos)
+        
+        yPos += 15
+      }
+    }
+    
+    // Tax Deductible Expenses by Category
+    if (data.expenseTaxInfo && data.expenseTaxInfo.length > 0 && data.taxCategories) {
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text('Tax Deductible Expenses by Category', 14, yPos)
+      
+      // Group expenses by tax category
+      const expensesByTaxCategory: Record<string, number> = {}
+      data.expenseTaxInfo.forEach(taxInfo => {
+        const category = data.taxCategories?.find(c => c.id === taxInfo.taxCategoryId)
+        if (category && taxInfo.deductible) {
+          expensesByTaxCategory[category.name] = 
+            (expensesByTaxCategory[category.name] || 0) + taxInfo.deductionAmount
+        }
+      })
+      
+      const taxCategoryData = Object.entries(expensesByTaxCategory)
+        .map(([category, amount]) => {
+          const cat = data.taxCategories?.find(c => c.name === category)
+          return [
+            category,
+            cat?.irsCategory || 'N/A',
+            `$${amount.toFixed(2)}`,
+            cat?.deductionType || 'full'
+          ]
+        })
+        .sort((a, b) => parseFloat(b[2].slice(1)) - parseFloat(a[2].slice(1)))
+      
+      if (taxCategoryData.length > 0) {
+        autoTable(doc, {
+          startY: yPos + 5,
+          head: [['Tax Category', 'IRS Schedule C', 'Deduction Amount', 'Type']],
+          body: taxCategoryData,
+          theme: 'striped',
+          headStyles: { fillColor: [99, 102, 241] },
+        })
+        
+        yPos = (doc as any).lastAutoTable.finalY + 15
+      }
+    }
+    
+    // Tax Disclaimer
+    if (yPos > 220) {
+      doc.addPage()
+      yPos = 20
+    }
+    
+    doc.setFillColor(254, 243, 199) // Light yellow
+    doc.roundedRect(14, yPos, 182, 30, 3, 3, 'F')
+    
+    yPos += 8
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(120, 53, 15) // Dark yellow
+    doc.text('⚠ Tax Disclaimer', 20, yPos)
+    
+    yPos += 7
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8)
+    doc.setTextColor(100, 100, 100)
+    const disclaimerText = 'This report is for informational purposes only and should not be considered tax advice. '
+    const disclaimerText2 = 'Please consult with a qualified tax professional or CPA for tax planning and filing.'
+    doc.text(disclaimerText, 20, yPos, { maxWidth: 172 })
+    yPos += 4
+    doc.text(disclaimerText2, 20, yPos, { maxWidth: 172 })
+  }
+
+  // ===== PAGE 6: AI INSIGHTS & COST OPTIMIZATION (if available) =====
+  if ((data.insights && data.insights.length > 0) || 
+      (data.costOptimizations && data.costOptimizations.length > 0) ||
+      (data.spendingPatterns && data.spendingPatterns.length > 0)) {
+    doc.addPage()
+    yPos = 20
+    
+    doc.setFontSize(16)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(168, 85, 247) // Purple
+    doc.text('AI Insights & Cost Optimization', 14, yPos)
+    
+    yPos += 10
+    
+    // Cost Optimization Summary
+    if (data.costOptimizations && data.costOptimizations.length > 0) {
+      const totalPotentialSavings = data.costOptimizations.reduce((sum, opt) => sum + opt.potentialSavings, 0)
+      
+      doc.setFillColor(250, 245, 255) // Light purple
+      doc.roundedRect(14, yPos, 182, 30, 3, 3, 'F')
+      
+      yPos += 10
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text('Cost Savings Opportunities', 20, yPos)
+      
+      yPos += 10
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(34, 197, 94)
+      doc.text('Total Potential Savings:', 20, yPos)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`$${totalPotentialSavings.toFixed(2)}`, 90, yPos)
+      doc.setTextColor(100, 100, 100)
+      doc.text(`from ${data.costOptimizations.length} optimization(s)`, 140, yPos)
+      
+      yPos += 15
+      
+      // Cost Optimization Details
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text('Detailed Cost Optimization Recommendations', 14, yPos)
+      
+      const optimizationData = data.costOptimizations.map(opt => [
+        opt.category,
+        `$${opt.currentSpend.toFixed(2)}`,
+        `$${opt.recommendedSpend.toFixed(2)}`,
+        `$${opt.potentialSavings.toFixed(2)}`,
+        opt.recommendation.length > 50 ? opt.recommendation.substring(0, 47) + '...' : opt.recommendation
+      ])
+      
+      autoTable(doc, {
+        startY: yPos + 5,
+        head: [['Category', 'Current', 'Recommended', 'Savings', 'Recommendation']],
+        body: optimizationData,
+        theme: 'striped',
+        headStyles: { fillColor: [168, 85, 247] },
+        columnStyles: {
+          3: { textColor: [34, 197, 94], fontStyle: 'bold' }
+        }
+      })
+      
+      yPos = (doc as any).lastAutoTable.finalY + 15
+    }
+    
+    // Spending Patterns
+    if (data.spendingPatterns && data.spendingPatterns.length > 0) {
+      if (yPos > 200) {
+        doc.addPage()
+        yPos = 20
+      }
+      
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text('Spending Patterns Analysis', 14, yPos)
+      
+      const patternsData = data.spendingPatterns.map(pattern => {
+        let trendIcon = '→'
+        let trendColor = [100, 100, 100]
+        if (pattern.trend === 'increasing') {
+          trendIcon = '↑'
+          trendColor = [239, 68, 68]
+        } else if (pattern.trend === 'decreasing') {
+          trendIcon = '↓'
+          trendColor = [34, 197, 94]
+        }
+        
+        return [
+          pattern.category,
+          `$${pattern.averageMonthly.toFixed(2)}`,
+          `${trendIcon} ${pattern.trend}`,
+          `${(pattern.variance * 100).toFixed(1)}%`
+        ]
+      })
+      
+      autoTable(doc, {
+        startY: yPos + 5,
+        head: [['Category', 'Avg Monthly', 'Trend', 'Variance']],
+        body: patternsData,
+        theme: 'striped',
+        headStyles: { fillColor: [168, 85, 247] },
+      })
+      
+      yPos = (doc as any).lastAutoTable.finalY + 15
+    }
+    
+    // AI Insights
+    if (data.insights && data.insights.length > 0) {
+      if (yPos > 200) {
+        doc.addPage()
+        yPos = 20
+      }
+      
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text('AI-Generated Insights', 14, yPos)
+      
+      yPos += 8
+      
+      // Group insights by impact
+      const highImpactInsights = data.insights.filter(i => i.impact === 'high' && i.actionable)
+      const mediumImpactInsights = data.insights.filter(i => i.impact === 'medium' && i.actionable)
+      
+      // High Impact Insights
+      if (highImpactInsights.length > 0) {
+        highImpactInsights.slice(0, 3).forEach((insight, index) => {
+          if (yPos > 250) {
+            doc.addPage()
+            yPos = 20
+          }
+          
+          // Insight card color based on type
+          let cardColor = [254, 242, 242] // Light red for warnings
+          if (insight.type === 'cost-savings') cardColor = [220, 252, 231] // Light green
+          if (insight.type === 'opportunity') cardColor = [219, 234, 254] // Light blue
+          
+          doc.setFillColor(cardColor[0], cardColor[1], cardColor[2])
+          doc.roundedRect(14, yPos, 182, 35, 2, 2, 'F')
+          
+          yPos += 8
+          doc.setFontSize(11)
+          doc.setFont('helvetica', 'bold')
+          doc.setTextColor(0, 0, 0)
+          doc.text(`${insight.title}`, 20, yPos)
+          
+          // Impact badge
+          doc.setFontSize(8)
+          doc.setFont('helvetica', 'bold')
+          doc.setTextColor(255, 255, 255)
+          doc.setFillColor(239, 68, 68)
+          doc.roundedRect(170, yPos - 5, 20, 5, 1, 1, 'F')
+          doc.text('HIGH', 175, yPos - 1)
+          
+          yPos += 6
+          doc.setFontSize(9)
+          doc.setFont('helvetica', 'normal')
+          doc.setTextColor(60, 60, 60)
+          const descLines = doc.splitTextToSize(insight.description, 172)
+          doc.text(descLines.slice(0, 2), 20, yPos)
+          
+          yPos += 12
+          if (insight.estimatedSavings) {
+            doc.setFont('helvetica', 'bold')
+            doc.setTextColor(34, 197, 94)
+            doc.text(`Potential Savings: $${insight.estimatedSavings.toFixed(2)}`, 20, yPos)
+          }
+          
+          yPos += 10
+        })
+      }
+      
+      // Summary of all insights
+      if (yPos > 220) {
+        doc.addPage()
+        yPos = 20
+      }
+      
+      yPos += 5
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text('All Insights Summary', 14, yPos)
+      
+      const insightsData = data.insights.slice(0, 10).map(insight => [
+        insight.type.replace('-', ' ').toUpperCase(),
+        insight.title.length > 40 ? insight.title.substring(0, 37) + '...' : insight.title,
+        insight.impact.toUpperCase(),
+        insight.estimatedSavings ? `$${insight.estimatedSavings.toFixed(2)}` : '-',
+        `${insight.confidence}%`
+      ])
+      
+      autoTable(doc, {
+        startY: yPos + 5,
+        head: [['Type', 'Insight', 'Impact', 'Savings', 'Confidence']],
+        body: insightsData,
+        theme: 'striped',
+        headStyles: { fillColor: [168, 85, 247] },
+      })
+      
+      yPos = (doc as any).lastAutoTable.finalY + 10
+    }
+  }
+
+  // ===== PAGE 7: CASH FLOW FORECAST (if available) =====
+  if (data.cashFlowForecast || (data.recurringTransactions && data.recurringTransactions.length > 0)) {
+    doc.addPage()
+    yPos = 20
+    
+    doc.setFontSize(16)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(59, 130, 246) // Blue
+    doc.text('Cash Flow Forecast', 14, yPos)
+    
+    yPos += 10
+    
+    if (data.cashFlowForecast) {
+      const forecast = data.cashFlowForecast
+      
+      // Forecast Summary Box
+      doc.setFillColor(239, 246, 255) // Light blue
+      doc.roundedRect(14, yPos, 182, 50, 3, 3, 'F')
+      
+      yPos += 10
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text('Forecast Summary', 20, yPos)
+      
+      yPos += 10
+      doc.setFontSize(11)
+      doc.setFont('helvetica', 'bold')
+      
+      doc.setTextColor(100, 100, 100)
+      doc.text('Forecast Period:', 20, yPos)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`${forecast.forecastPeriod} days`, 80, yPos)
+      doc.text(`(${format(forecast.startDate, 'MMM dd')} - ${format(forecast.endDate, 'MMM dd, yyyy')})`, 110, yPos)
+      
+      yPos += 8
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(59, 130, 246)
+      doc.text('Current Balance:', 20, yPos)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`$${forecast.currentBalance.toFixed(2)}`, 80, yPos)
+      
+      yPos += 8
+      doc.setFont('helvetica', 'bold')
+      const projBalanceColor = forecast.projectedBalance >= forecast.currentBalance ? [34, 197, 94] : [239, 68, 68]
+      doc.setTextColor(projBalanceColor[0], projBalanceColor[1], projBalanceColor[2])
+      doc.text('Projected Balance:', 20, yPos)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`$${forecast.projectedBalance.toFixed(2)}`, 80, yPos)
+      
+      const changeAmount = forecast.projectedBalance - forecast.currentBalance
+      const changePercent = forecast.currentBalance !== 0 
+        ? (changeAmount / forecast.currentBalance * 100).toFixed(1)
+        : '0'
+      doc.setTextColor(100, 100, 100)
+      doc.text(`(${changeAmount >= 0 ? '+' : ''}$${changeAmount.toFixed(2)} / ${changeAmount >= 0 ? '+' : ''}${changePercent}%)`, 140, yPos)
+      
+      yPos += 8
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(168, 85, 247)
+      doc.text('Confidence Level:', 20, yPos)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`${(forecast.confidence * 100).toFixed(0)}%`, 80, yPos)
+      
+      yPos += 15
+      
+      // Forecast Assumptions
+      if (forecast.assumptions && forecast.assumptions.length > 0) {
+        doc.setFontSize(12)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(0, 0, 0)
+        doc.text('Forecast Assumptions', 14, yPos)
+        
+        yPos += 8
+        doc.setFontSize(9)
+        doc.setFont('helvetica', 'normal')
+        
+        forecast.assumptions.slice(0, 5).forEach(assumption => {
+          if (yPos > 270) {
+            doc.addPage()
+            yPos = 20
+          }
+          doc.text(`• ${assumption.type.toUpperCase()}: ${assumption.description}`, 20, yPos)
+          yPos += 5
+        })
+        
+        yPos += 10
+      }
+      
+      // Sample of daily projections
+      if (forecast.dailyProjections && forecast.dailyProjections.length > 0) {
+        if (yPos > 180) {
+          doc.addPage()
+          yPos = 20
+        }
+        
+        doc.setFontSize(12)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(0, 0, 0)
+        doc.text('Weekly Forecast Breakdown', 14, yPos)
+        
+        // Group by weeks and show weekly totals
+        const weeklyData: any[] = []
+        let weekRevenue = 0
+        let weekExpenses = 0
+        let weekCount = 0
+        let weekStart = 0
+        
+        forecast.dailyProjections.forEach((day, index) => {
+          weekRevenue += day.projectedRevenue
+          weekExpenses += day.projectedExpenses
+          weekCount++
+          
+          if (weekCount === 7 || index === forecast.dailyProjections.length - 1) {
+            const weekEnd = index
+            const netChange = weekRevenue - weekExpenses
+            weeklyData.push([
+              `Week ${Math.floor(index / 7) + 1}`,
+              `${format(forecast.dailyProjections[weekStart].date, 'MMM dd')} - ${format(day.date, 'MMM dd')}`,
+              `$${weekRevenue.toFixed(2)}`,
+              `$${weekExpenses.toFixed(2)}`,
+              `$${netChange.toFixed(2)}`,
+              `$${day.projectedBalance.toFixed(2)}`
+            ])
+            
+            weekRevenue = 0
+            weekExpenses = 0
+            weekCount = 0
+            weekStart = index + 1
+          }
+        })
+        
+        autoTable(doc, {
+          startY: yPos + 5,
+          head: [['Week', 'Period', 'Revenue', 'Expenses', 'Net Change', 'Balance']],
+          body: weeklyData,
+          theme: 'striped',
+          headStyles: { fillColor: [59, 130, 246] },
+        })
+        
+        yPos = (doc as any).lastAutoTable.finalY + 15
+      }
+    }
+    
+    // Recurring Transactions
+    if (data.recurringTransactions && data.recurringTransactions.length > 0) {
+      if (yPos > 200) {
+        doc.addPage()
+        yPos = 20
+      }
+      
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text('Recurring Transactions', 14, yPos)
+      
+      const recurringRevenue = data.recurringTransactions.filter(t => t.type === 'revenue' && t.active)
+      const recurringExpenses = data.recurringTransactions.filter(t => t.type === 'expense' && t.active)
+      
+      if (recurringRevenue.length > 0) {
+        yPos += 8
+        doc.setFontSize(11)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(34, 197, 94)
+        doc.text('Recurring Revenue', 14, yPos)
+        
+        const revenueData = recurringRevenue.map(t => [
+          t.name,
+          t.frequency,
+          `$${t.amount.toFixed(2)}`,
+          format(t.startDate, 'MMM dd, yyyy'),
+          t.endDate ? format(t.endDate, 'MMM dd, yyyy') : 'Ongoing'
+        ])
+        
+        autoTable(doc, {
+          startY: yPos + 3,
+          head: [['Name', 'Frequency', 'Amount', 'Start Date', 'End Date']],
+          body: revenueData,
+          theme: 'striped',
+          headStyles: { fillColor: [34, 197, 94] },
+        })
+        
+        yPos = (doc as any).lastAutoTable.finalY + 10
+      }
+      
+      if (recurringExpenses.length > 0) {
+        if (yPos > 220) {
+          doc.addPage()
+          yPos = 20
+        }
+        
+        yPos += 8
+        doc.setFontSize(11)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(239, 68, 68)
+        doc.text('Recurring Expenses', 14, yPos)
+        
+        const expenseData = recurringExpenses.map(t => [
+          t.name,
+          t.frequency,
+          `$${t.amount.toFixed(2)}`,
+          format(t.startDate, 'MMM dd, yyyy'),
+          t.endDate ? format(t.endDate, 'MMM dd, yyyy') : 'Ongoing'
+        ])
+        
+        autoTable(doc, {
+          startY: yPos + 3,
+          head: [['Name', 'Frequency', 'Amount', 'Start Date', 'End Date']],
+          body: expenseData,
+          theme: 'striped',
+          headStyles: { fillColor: [239, 68, 68] },
+        })
+        
+        yPos = (doc as any).lastAutoTable.finalY + 10
+      }
+      
+      // Monthly totals
+      if (yPos > 240) {
+        doc.addPage()
+        yPos = 20
+      }
+      
+      yPos += 5
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 0, 0)
+      doc.text('Estimated Monthly Recurring Totals:', 14, yPos)
+      
+      // Calculate monthly equivalents
+      const monthlyRevenueTotal = recurringRevenue.reduce((sum, t) => {
+        const multiplier = {
+          'daily': 30,
+          'weekly': 4.33,
+          'bi-weekly': 2.17,
+          'monthly': 1,
+          'quarterly': 0.33,
+          'annually': 0.083
+        }[t.frequency] || 1
+        return sum + (t.amount * multiplier)
+      }, 0)
+      
+      const monthlyExpenseTotal = recurringExpenses.reduce((sum, t) => {
+        const multiplier = {
+          'daily': 30,
+          'weekly': 4.33,
+          'bi-weekly': 2.17,
+          'monthly': 1,
+          'quarterly': 0.33,
+          'annually': 0.083
+        }[t.frequency] || 1
+        return sum + (t.amount * multiplier)
+      }, 0)
+      
+      yPos += 7
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(34, 197, 94)
+      doc.text(`Recurring Revenue: $${monthlyRevenueTotal.toFixed(2)}/month`, 20, yPos)
+      
+      yPos += 6
+      doc.setTextColor(239, 68, 68)
+      doc.text(`Recurring Expenses: $${monthlyExpenseTotal.toFixed(2)}/month`, 20, yPos)
+      
+      yPos += 6
+      doc.setTextColor(59, 130, 246)
+      doc.text(`Net Recurring: $${(monthlyRevenueTotal - monthlyExpenseTotal).toFixed(2)}/month`, 20, yPos)
+    }
   }
 
   // ===== FOOTER ON ALL PAGES =====

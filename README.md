@@ -79,6 +79,54 @@ A modern, AI-powered dashboard for small businesses featuring advanced financial
 - Daily average revenue/expense tracking
 - Inventory value analytics
 
+### 📄 Comprehensive PDF Reports
+Generate beautiful, professional business reports that include ALL features from the dashboard:
+
+**Standard Report Sections**:
+- 📊 **Executive Summary** - Key metrics, profit margins, visual comparison charts
+- 💰 **Revenue Analysis** - Revenue by source with bar charts and detailed tables
+- 💳 **Expense Analysis** - Expense by category with visualizations and breakdowns
+- 📦 **Inventory Analysis** - Stock levels, low-stock alerts, and valuable items
+
+**🆕 V2 Enhanced Report Sections** (when data available):
+- 🧾 **Tax Analysis**
+  - Tax summary box with total deductible expenses
+  - Taxable income calculations
+  - Estimated tax obligations (federal, state, sales tax)
+  - Tax configuration details (business type, rates)
+  - Deductible expenses by IRS Schedule C category
+  - Tax disclaimer for compliance
+  
+- 🤖 **AI Insights & Cost Optimization**
+  - Total potential savings summary
+  - Detailed cost optimization recommendations by category
+  - Current vs. recommended spending comparisons
+  - Spending patterns analysis with trend indicators
+  - High-impact AI insights with estimated savings
+  - Complete insights summary table
+  
+- 📈 **Cash Flow Forecast**
+  - Forecast summary (30/60/90/180/365 days)
+  - Current vs. projected balance with confidence scores
+  - Forecast assumptions and methodology
+  - Weekly breakdown of projected revenue, expenses, and balance
+  - Recurring revenue and expense schedules
+  - Monthly recurring totals calculations
+
+**Report Features**:
+- Professional branding with color-coded sections
+- Interactive visual charts and comparison bars
+- Sortable data tables with summaries
+- Low-stock inventory alerts
+- Tax-ready documentation with disclaimers
+- Actionable insights with specific recommendations
+- Confidence scoring for forecasts
+- Automatic pagination and footer with page numbers
+- Timestamped generation date
+- Export filename includes business name and date
+
+All reports are generated client-side and can be exported for any custom date range.
+
 ---
 
 ## ⚡ Quick Start
@@ -361,6 +409,122 @@ Visit `http://localhost:3000`
 
 ---
 
+## 💻 Developer Guide: Enhanced PDF Reports
+
+### Using the PDF Generator
+
+The `generateComprehensiveReport()` function in `lib/pdfGenerator.ts` accepts an enhanced `ReportData` interface that supports all V2 features:
+
+```typescript
+import { generateComprehensiveReport } from '@/lib/pdfGenerator'
+
+// Basic report (original features)
+await generateComprehensiveReport({
+  business: businessData,
+  revenues: revenueArray,
+  expenses: expenseArray,
+  inventory: inventoryArray,
+  startDate: new Date('2024-01-01'),
+  endDate: new Date('2024-12-31')
+})
+
+// Enhanced report with V2 features (all optional)
+await generateComprehensiveReport({
+  business: businessData,
+  revenues: revenueArray,
+  expenses: expenseArray,
+  inventory: inventoryArray,
+  startDate: new Date('2024-01-01'),
+  endDate: new Date('2024-12-31'),
+  
+  // Tax Analysis (optional)
+  taxReport: taxReportData,
+  taxSettings: taxSettingsData,
+  expenseTaxInfo: expenseTaxInfoArray,
+  taxCategories: taxCategoriesArray,
+  
+  // AI Insights & Cost Optimization (optional)
+  insights: insightsArray,
+  spendingPatterns: spendingPatternsArray,
+  costOptimizations: costOptimizationsArray,
+  
+  // Cash Flow Forecasting (optional)
+  cashFlowForecast: forecastData,
+  recurringTransactions: recurringTransactionsArray
+})
+```
+
+### Report Generation Logic
+
+The PDF generator intelligently includes sections based on available data:
+
+- **Pages 1-4**: Always included (Summary, Revenue, Expenses, Inventory)
+- **Page 5**: Tax Analysis (if `taxReport` or `expenseTaxInfo` provided)
+- **Page 6**: AI Insights (if `insights`, `costOptimizations`, or `spendingPatterns` provided)
+- **Page 7**: Cash Flow Forecast (if `cashFlowForecast` or `recurringTransactions` provided)
+
+### Example: Full Report with All Features
+
+```typescript
+// Fetch all data from Firestore
+const [
+  revenues,
+  expenses,
+  inventory,
+  taxReport,
+  taxSettings,
+  expenseTaxInfo,
+  taxCategories,
+  insights,
+  spendingPatterns,
+  costOptimizations,
+  cashFlowForecast,
+  recurringTransactions
+] = await Promise.all([
+  // ... your Firestore queries
+])
+
+// Generate comprehensive report
+const fileName = await generateComprehensiveReport({
+  business,
+  revenues,
+  expenses,
+  inventory,
+  startDate,
+  endDate,
+  taxReport,
+  taxSettings,
+  expenseTaxInfo,
+  taxCategories,
+  insights,
+  spendingPatterns,
+  costOptimizations,
+  cashFlowForecast,
+  recurringTransactions
+})
+
+console.log(`Report generated: ${fileName}`)
+```
+
+### TypeScript Types
+
+All types are defined in `types/index.ts`:
+- `TaxReport`, `TaxSettings`, `ExpenseTaxInfo`, `TaxCategory`
+- `Insight`, `SpendingPattern`, `CostOptimization`
+- `CashFlowForecast`, `RecurringTransaction`, `CashFlowDay`, `ForecastAssumption`
+
+### Report Colors & Branding
+
+The PDF uses consistent color coding:
+- **Orange** (#F06020): Primary branding, inventory
+- **Green** (#22C55E): Revenue, profit, savings
+- **Red** (#EF4444): Expenses, losses, warnings
+- **Indigo** (#6366F1): Tax analysis
+- **Purple** (#A855F7): AI insights
+- **Blue** (#3B82F6): Cash flow forecasting
+
+---
+
 ## 📁 Project Structure
 
 ```
@@ -543,6 +707,49 @@ FIREBASE_PRIVATE_KEY=
 
 ---
 
+## 📊 How to Generate Enhanced PDF Reports
+
+PDF reports automatically include all available data from your dashboard. Here's how to get comprehensive reports:
+
+### Basic Report (Always Included)
+Simply click "Export PDF Report" from the dashboard to get:
+- Revenue, Expense, and Inventory analysis
+- Charts and visualizations
+- Time period summaries
+
+### Enhanced Reports with V2 Features
+
+**To Include Tax Analysis**:
+1. Go to **Taxes** page
+2. Configure tax settings (business type, rates)
+3. Categorize expenses with tax categories
+4. Generate quarterly or annual tax report
+5. Export PDF - tax section automatically included
+
+**To Include AI Insights & Cost Optimization**:
+1. Go to **Intelligence** page → **AI Insights** tab
+2. Click "Generate Fresh Insights"
+3. Review cost savings opportunities
+4. Export PDF - insights section automatically included
+
+**To Include Cash Flow Forecast**:
+1. Go to **Intelligence** page → **Cash Flow** tab
+2. Select forecast period (30/60/90 days)
+3. Click "Generate Forecast"
+4. Add recurring transactions for accuracy
+5. Export PDF - forecast section automatically included
+
+### Pro Tips for Best Reports
+- **Set up recurring transactions** for more accurate forecasts
+- **Categorize all expenses** for better tax deductions
+- **Generate insights regularly** to track optimization progress
+- **Configure tax settings once** at the start of the year
+- **Use custom date ranges** to compare different periods
+
+The PDF generator intelligently includes only the sections where data is available, ensuring reports are always relevant and professional.
+
+---
+
 ## 🎯 Production Checklist
 
 Before launching to real users:
@@ -556,7 +763,10 @@ Before launching to real users:
 - [ ] Test all user flows
 - [ ] Test subscription checkout
 - [ ] Test customer portal
-- [ ] Generate test PDF reports
+- [ ] Generate test PDF reports (with all V2 features)
+- [ ] Test tax report generation
+- [ ] Test AI insights generation
+- [ ] Test cash flow forecasting
 - [ ] Verify mobile responsiveness
 - [ ] Set up monitoring/analytics
 - [ ] Create support email/documentation

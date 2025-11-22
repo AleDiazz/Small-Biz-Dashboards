@@ -40,6 +40,7 @@ import { formatCurrency, firestoreTimestampToDate } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
 import ComparisonBadge from '@/components/ComparisonBadge'
+import CustomDateRangePicker from '@/components/CustomDateRangePicker'
 
 type TimePeriod = 'this-week' | 'this-month' | 'last-month' | 'year-to-date'
 
@@ -51,6 +52,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [generatingPDF, setGeneratingPDF] = useState<string | null>(null)
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('this-month')
+  const [showCustomDatePicker, setShowCustomDatePicker] = useState(false)
 
   useEffect(() => {
     if (!selectedBusiness) return
@@ -293,7 +295,7 @@ export default function DashboardPage() {
 
   const COLORS = ['#f59e0b', '#fbbf24', '#fcd34d', '#22c55e', '#4ade80', '#ef4444', '#60a5fa', '#a78bfa']
 
-  const handleExportReport = async (period: 'this-week' | 'this-month' | 'last-month' | 'year-to-date') => {
+  const handleExportReport = async (period: 'this-week' | 'this-month' | 'last-month' | 'year-to-date' | 'custom', customStartDate?: Date, customEndDate?: Date) => {
     if (!selectedBusiness) return
     
     setGeneratingPDF(period)
@@ -301,23 +303,30 @@ export default function DashboardPage() {
       let startDate: Date
       let endDate: Date
       
-      switch (period) {
-        case 'this-week':
-          startDate = startOfWeek(new Date(), { weekStartsOn: 0 })
-          endDate = endOfWeek(new Date(), { weekStartsOn: 0 })
-          break
-        case 'this-month':
-          startDate = startOfMonth(new Date())
-          endDate = endOfMonth(new Date())
-          break
-        case 'last-month':
-          startDate = startOfMonth(subMonths(new Date(), 1))
-          endDate = endOfMonth(subMonths(new Date(), 1))
-          break
-        case 'year-to-date':
-          startDate = startOfYear(new Date())
-          endDate = new Date()
-          break
+      if (period === 'custom' && customStartDate && customEndDate) {
+        startDate = customStartDate
+        endDate = customEndDate
+      } else {
+        switch (period) {
+          case 'this-week':
+            startDate = startOfWeek(new Date(), { weekStartsOn: 0 })
+            endDate = endOfWeek(new Date(), { weekStartsOn: 0 })
+            break
+          case 'this-month':
+            startDate = startOfMonth(new Date())
+            endDate = endOfMonth(new Date())
+            break
+          case 'last-month':
+            startDate = startOfMonth(subMonths(new Date(), 1))
+            endDate = endOfMonth(subMonths(new Date(), 1))
+            break
+          case 'year-to-date':
+            startDate = startOfYear(new Date())
+            endDate = new Date()
+            break
+          default:
+            throw new Error('Invalid period selected')
+        }
       }
       
       await generateComprehensiveReport({
@@ -336,6 +345,10 @@ export default function DashboardPage() {
     } finally {
       setGeneratingPDF(null)
     }
+  }
+
+  const handleCustomDateSelect = (startDate: Date, endDate: Date) => {
+    handleExportReport('custom', startDate, endDate)
   }
 
   if (loading) {
@@ -750,7 +763,7 @@ export default function DashboardPage() {
         <p className="text-primary-100 text-sm mb-6">
           Generate professional PDF reports with all your revenue, expenses, inventory data, and visual charts
         </p>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {/* This Week Report */}
           <button
             onClick={() => handleExportReport('this-week')}
@@ -802,8 +815,29 @@ export default function DashboardPage() {
               {generatingPDF === 'year-to-date' ? 'Generating...' : format(startOfYear(new Date()), 'MMM yyyy') + ' - Now'}
             </span>
           </button>
+
+          {/* Custom Date Range */}
+          <button
+            onClick={() => setShowCustomDatePicker(true)}
+            disabled={generatingPDF !== null}
+            className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-4 hover:bg-white/20 transition-all text-center group disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Calendar className="w-8 h-8 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+            <span className="font-medium block mb-1">Custom Range</span>
+            <span className="text-xs text-primary-100">
+              Choose dates
+            </span>
+          </button>
         </div>
       </div>
+
+      {/* Custom Date Range Picker Modal */}
+      {showCustomDatePicker && (
+        <CustomDateRangePicker
+          onSelect={handleCustomDateSelect}
+          onClose={() => setShowCustomDatePicker(false)}
+        />
+      )}
     </div>
   )
 }
